@@ -20,6 +20,11 @@ namespace BookingService.Application.Handlers.CommandHandlers
                 return NotFound(nameof(table));
             }
 
+            if (await DbContext.Groups.AnyAsync(x => x.TableId.HasValue && x.TableId.Value == table.Id))
+            {
+                return BadRequest("There are some active reservations for this table.");
+            }
+
             DbContext.Tables.Remove(table);
             await DbContext.SaveChangesAsync(cancellationToken);
             return new BaseResponse<object>();

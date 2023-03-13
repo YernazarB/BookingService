@@ -5,7 +5,7 @@ namespace BookingService.Application.Managers
     public interface IRestManager
     {
         /// <summary>
-        /// Creates a new group and makes a reservation this new group.
+        /// Creates a new group and makes a reservation for this new group.
         /// </summary>
         /// <param name="newGroup"></param>
         /// <returns></returns>
