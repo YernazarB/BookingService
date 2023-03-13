@@ -1,4 +1,3 @@
-using BookingService.Application;
 using BookingService.Application.Interfaces;
 using BookingService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +10,14 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(connectionString);
 });
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetService<AppDbContext>());
-builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(connectionString);
 
 var app = builder.Build();
 
