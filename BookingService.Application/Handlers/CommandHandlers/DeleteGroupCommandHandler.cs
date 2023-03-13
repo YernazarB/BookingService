@@ -16,7 +16,12 @@ namespace BookingService.Application.Handlers.CommandHandlers
 
         protected override async Task<BaseResponse<object>> HandleRequest(DeleteGroupCommand request, CancellationToken cancellationToken)
         {
-            await _restManager.OnLeave(request.Id);
+            var tableId = await _restManager.OnLeave(request.Id);
+            if (tableId.HasValue)
+            {
+                await _restManager.ReserveTable(tableId.Value);
+            }
+
             return new BaseResponse<object>();
         }
     }

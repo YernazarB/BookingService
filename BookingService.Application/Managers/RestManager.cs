@@ -41,14 +41,14 @@ namespace BookingService.Application.Managers
             }
         }
 
-        public async Task OnLeave(int groupId)
+        public async Task<int?> OnLeave(int groupId)
         {
             await using (await _lock.AcquireAsync())
             {
                 var group = await _db.Groups.Where(x => x.Id == groupId).Include(x => x.Table).FirstOrDefaultAsync();
                 if (group == null)
                 {
-                    return;
+                    return null;
                 }
 
                 //Release the table
@@ -63,19 +63,30 @@ namespace BookingService.Application.Managers
                 _db.Groups.Remove(group);
                 await _db.SaveChangesAsync();
 
-                //Add pending groups to the table
-                if (table != null)
-                {
-                    var pendingGroup = await GetPendingGroup(table);
-                    while (pendingGroup != null)
-                    {
-                        table.Occupied += pendingGroup.Size;
-                        table.Remainder -= pendingGroup.Size;
-                        pendingGroup.TableId = table.Id;
+                return table.Id;
+            }
+        }
 
-                        await _db.SaveChangesAsync();
-                        pendingGroup = await GetPendingGroup(table);
-                    }
+        public async Task ReserveTable(int tableId)
+        {
+            await using (await _lock.AcquireAsync())
+            {
+                var table = await _db.Tables.Where(x => x.Id == tableId).FirstOrDefaultAsync();
+                if (table == null)
+                {
+                    return;
+                }
+
+                //Add pending groups to the table
+                var pendingGroup = await GetPendingGroup(table);
+                while (pendingGroup != null)
+                {
+                    table.Occupied += pendingGroup.Size;
+                    table.Remainder -= pendingGroup.Size;
+                    pendingGroup.TableId = table.Id;
+
+                    await _db.SaveChangesAsync();
+                    pendingGroup = await GetPendingGroup(table);
                 }
             }
         }
